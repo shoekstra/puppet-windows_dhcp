@@ -18,8 +18,8 @@ class windows_dhcp (
   }
 
   $credentials = "
-$pass = convertto-securestring -String \"${domain_pass}\" -AsPlainText -Force;
-$cred = new-object -typename System.Management.Automation.PSCredential -argumentlist \"${domain_user}\",$pass
+\$pass = convertto-securestring -String \"${domain_pass}\" -AsPlainText -Force;
+\$cred = new-object -typename System.Management.Automation.PSCredential -argumentlist \"${domain_user}\",\$pass
 "
 
   class { '::windows_dhcp::install': } ->
