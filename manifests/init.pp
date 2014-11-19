@@ -1,21 +1,33 @@
 # == Class: windows_dhcp
 #
-# Full description of class windows_dhcp here.
+# Puppet module to install and configure the Windows DHCP server.  Use this class to install and 
+# configure your DHCP server level options.
 #
 # === Parameters
 #
-# [*sample_parameter*]
-#   Explanation of what this parameter affects and what it defaults to.
+# [*domain_user*]
+#   Domain user used to authorise your DHCP server in Active Directory.  For information on how 
+#   to configure this user please see the README.  This is a required parameter.
+#
+# [*domain_pass*]
+#   Password for domain user.  This is required parameter.
+#
+# [*conflictdetectionattempts*]
+#   Specifies the number of times that the DHCP server service should attempt conflict detection 
+#   before leasing an IP address. The acceptable values for this parameter are 0 through 5. 
+#   The default value is 0.
 #
 class windows_dhcp (
   $domain_user,
   $domain_pass,
+  $conflictdetectionattempts = 0,
 ) {
 
-  # validate parameters here
   if ! $::osfamily == 'Windows' {
     fail("${::operatingsystem} not supported")
   }
+
+  validate_re($conflictdetectionattempts, '[0-5]', '$conflictdetectionattempts must be between 0 and 5')
 
   $credentials = "
 \$pass = convertto-securestring -String \"${domain_pass}\" -AsPlainText -Force;
