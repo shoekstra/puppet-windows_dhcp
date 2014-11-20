@@ -1,11 +1,51 @@
 # == Define: windows_dhcp::failover
 #
-# Use windows_dhcp::failover to configure DHCP failover partnerships.
+# Use windows_dhcp::failover to configure DHCP failover partnerships for IPv4 scopes. This module
+# does not yet support IPv6 failover partnerships.
 #
 # === Parameters
 #
-# [*sample_parameter*]
-#   Explanation of what this parameter affects and what it defaults to.
+# [*partnerserver*]
+#   Specifies the IPv4 address, or host name, of the partner DHCP server with which the failover
+#   relationship is created. This is a required parameter.
+#
+# [*scopeid*]
+#   Specifies the scope identifiers, in IPv4 address format, which are to be added to the failover
+#   relationship. This is a required parameter.
+#
+# [*mode*]
+#   Specifies a mode for the failover relationship. The acceptable values for this parameter are
+#   'hotstandby' and 'loadbalance'. The default value is 'loadbalance'.
+#
+# [*loadbalancepercent*]
+#   Specifies the percentage of DHCP client requests which should be served by the DHCP server. The
+#   remaining requests would be served by the partner server service. The default value is '50'.
+#
+# [*maxclientleadtime*]
+#   Specifies the maximum client lead time for the failover relationship. The default value is
+#   '1:00:00'.
+#
+# [*reservepercent*]
+#   Specifies the percentage of free IPv4 addresses in the IPv4 address pool of the scope which
+#   should be reserved on the standby DHCP server when configured as a hot-standby. In the case of
+#   a failover, the IPv4 address from this reserved pool on the standby DHCP server service will be
+#   leased to new DHCP clients. The default value is '5'.
+#
+# [*serverrole*]
+#   Specifies the role of the local DHCP server service in hot-standby mode. Acceptable values for
+#   this parameter are 'active' or 'standby'. The default value is 'active' for the local DHCP server,
+#   such as the partner DHCP server that is specified will be a standby DHCP server. The default
+#   value is 'active'.
+#
+# [*sharedsecret*]
+#   Specifies the shared secret to be used for message digest authentication. If not specified,
+#   then the message digest authentication is turned off. This is only used when creating the
+#   failover partnerships; changing this after a partnership has been created will not update the
+#   shared secret. To do change the shared secret you will need to use the MMC.
+#
+# [*stateswitchinterval*]
+#   Specifies the time interval for which the DHCP server operates in the COMMUNICATION INTERRUPTED
+#   state before transitioning to the PARTNER DOWN state. The default value is '1:00:00'.
 #
 define windows_dhcp::failover (
   $partnerserver,
@@ -21,7 +61,8 @@ define windows_dhcp::failover (
 
   Windows_dhcp::Subnet <| |> -> Windows_dhcp::Failover[$title]
 
-  validate_re($mode, '(loadbalance|hotstandby)')
+  validate_re($mode, '(loadbalance|hotstandby)', '$mode must be either loadbalance or hotstandby')
+  validate_re($serverrole, '(active|standby)', '$serverrole must be either active or standby')
 
   if is_array($scopeid) {
     $escaped = join(prefix(suffix($scopeid,'\''),'\''),',')
@@ -30,7 +71,7 @@ define windows_dhcp::failover (
     $subnets = $scopeid
   }
 
-  if $stateswitchinterval == "0" or $stateswitchinterval == undef { 
+  if $stateswitchinterval == "0" or $stateswitchinterval == undef {
     $autostatetransition = false
   } else {
     $autostatetransition = true

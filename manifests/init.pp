@@ -1,21 +1,21 @@
 # == Class: windows_dhcp
 #
-# Puppet module to install and configure the Windows DHCP server.  Use this class to install and 
+# Puppet module to install and configure the Windows DHCP server. Use this class to install and
 # configure your DHCP server level options.
 #
 # === Parameters
 #
 # [*domain_user*]
-#   Domain user used to authorise your DHCP server in Active Directory.  For information on how 
-#   to configure this user please see the README.  This is a required parameter.
+#   Domain user used to authorise your DHCP server in Active Directory. For information on how to
+#   configure this user please see the README. This is a required parameter.
 #
 # [*domain_pass*]
-#   Password for domain user.  This is required parameter.
+#   Password for domain user. This is required parameter.
 #
 # [*conflictdetectionattempts*]
-#   Specifies the number of times that the DHCP server service should attempt conflict detection 
-#   before leasing an IP address. The acceptable values for this parameter are 0 through 5. 
-#   The default value is 0.
+#   Specifies the number of times that the DHCP server service should attempt conflict detection
+#   before leasing an IP address. The acceptable values for this parameter are 0 through 5. The
+#   default value is '0'.
 #
 class windows_dhcp (
   $domain_user,

@@ -7,6 +7,63 @@
 # [*sample_parameter*]
 #   Explanation of what this parameter affects and what it defaults to.
 #
+# [*startrange*]
+#   Specifies the starting address of the IPv4 range to set for the scope. This is a required
+#   parameter.
+#
+# [*endrange*]
+#   Specifies the ending address of the IPv4 range to set for the scope. This is a required
+#   parameter.
+
+# [*scopeid*]
+#   Specifies the scope identifier (network address) for the scope specified. This is a required
+#   parameter.
+#
+# [*subnetmask*]
+#   Specifies the subnet mask for the scope/network address specified. This is a required
+#   parameter.
+#
+# [*dnsdomain*]
+#   Specifies the value for the DNS domain option.  The default value is the $::domain fact.
+#
+# [*dnsserver*]
+#   Specifies one or more values for the DNS server option, in the IPv4 address format.
+#
+# [*router*]
+#   Specifies one or more values for the router or default gateway option, in IPv4 address format.
+#   The default value is undef.
+#
+# [*activatepolicies*]
+#   Specifies the enabled state for the policy enforcement on the scope. The acceptable values for
+#   this parameter are 'true' or 'false'. The default value is 'true'.
+#
+# [*delay*]
+#   Specifies the time, in milliseconds, by which the DHCP server service should delay sending a
+#   response to the clients. This parameter should be used on the secondary DHCP server service in
+#   a split scope configuration. The default value is '0'.
+#
+# [*description*]
+#   Specifies the description to set for the scope.
+#
+# [*leaseduration*]
+#   Specifies the duration of the IPv4 address lease to give for the clients of the scope. The
+#   default value is '8.00:00:00'.
+#
+# [*maxbootpclients*]
+#   Specifies the maximum number of BootP clients permitted to get an IP address lease from the
+#   scope. This parameter can only be used if the 'type' parameter value is set to 'both'. The
+#   default value is '4294967295'.
+#
+# [*state*]
+#   Specifies the state of the scope. The acceptable values for this parameter are 'active' and
+#   'inactive'. The default value is 'active'.
+#
+# [*type*]
+#   Specifies the type of the scope. The acceptable values for this parameter are 'dhcp', 'bootp'
+#   and 'both'. The type of the scope determines if the DHCP server service responds to only DHCP
+#   client requests, only BootP client requests, or Both types of clients. The default value is
+#   'dhcp'.
+#
 define windows_dhcp::scope (
   $startrange,
   $endrange,
