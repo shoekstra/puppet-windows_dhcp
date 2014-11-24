@@ -45,7 +45,8 @@
 #
 # [*stateswitchinterval*]
 #   Specifies the time interval for which the DHCP server operates in the COMMUNICATION INTERRUPTED
-#   state before transitioning to the PARTNER DOWN state. The default value is '1:00:00'.
+#   state before transitioning to the PARTNER DOWN state. Set to '0' to disable.  The default value
+#   is '1:00:00'.
 #
 define windows_dhcp::failover (
   $partnerserver,
@@ -59,7 +60,7 @@ define windows_dhcp::failover (
   $stateswitchinterval = '1:00:00',
 ) {
 
-  Windows_dhcp::Subnet <| |> -> Windows_dhcp::Failover[$title]
+  Windows_dhcp::Scope <| |> -> Windows_dhcp::Failover[$title]
 
   validate_re($mode, '(loadbalance|hotstandby)', '$mode must be either loadbalance or hotstandby')
   validate_re($serverrole, '(active|standby)', '$serverrole must be either active or standby')
@@ -72,12 +73,12 @@ define windows_dhcp::failover (
   }
 
   if $stateswitchinterval == "0" or $stateswitchinterval == undef {
-    $autostatetransition = false
+    $autostatetransition = '$false'
   } else {
-    $autostatetransition = true
+    $autostatetransition = '$true'
   }
 
-  $common_options = "-AutoStateTransition \$${autostatetransition} -MaxClientLeadTime ${maxclientleadtime} -SharedSecret ${sharedsecret} -StateSwitchInterval ${stateswitchinterval}"
+  $common_options = "-AutoStateTransition ${autostatetransition} -MaxClientLeadTime ${maxclientleadtime} -SharedSecret \"${sharedsecret}\" -StateSwitchInterval ${stateswitchinterval}"
 
   Exec {
     provider => 'powershell',
@@ -88,54 +89,60 @@ define windows_dhcp::failover (
     $mode_options = "-LoadBalancePercent ${loadbalancepercent}"
 
     exec { "set ${title} loadbalancepercent":
-      command => "Set-DhcpServerv4Failover ${title} -LoadBalancePercent ${loadbalancepercent}",
-      unless  => "if ((Get-DhcpServerv4Failover ${title}).LoadBalancePercent -ne ${loadbalancepercent}) { exit 1 }",
+      command => "Set-DhcpServerv4Failover \"${title}\" -LoadBalancePercent ${loadbalancepercent}",
+      unless  => "if ((Get-DhcpServerv4Failover \"${title}\").LoadBalancePercent -ne ${loadbalancepercent}) { exit 1 }",
     }
   } else {
     $mode_options = "-ReservePercent ${reservepercent} -ServerRole ${serverrole}"
 
     exec { "set ${title} reservepercent":
-      command => "Set-DhcpServerv4Failover ${title} -ReservePercent ${reservepercent}",
-      unless  => "if ((Get-DhcpServerv4Failover ${title}).ReservePercent -ne ${reservepercent}) { exit 1 }",
+      command => "Set-DhcpServerv4Failover \"${title}\" -ReservePercent ${reservepercent}",
+      unless  => "if ((Get-DhcpServerv4Failover \"${title}\").ReservePercent -ne ${reservepercent}) { exit 1 }",
+    }
+
+    exec { "set ${title} serverrole":
+      command => "Set-DhcpServerv4Failover \"${title}\" -ServerRole ${serverrole}",
+      unless  => "if ((Get-DhcpServerv4Failover \"${title}\").ServerRole -ne ${serverrole}) { exit 1 }",
     }
   }
 
   exec { "add ${title}":
-    command => "Add-DhcpServerv4Failover -Name ${title} -ScopeId ${subnets} -PartnerServer ${partnerserver} ${common_options} ${mode_options} -Force",
-    unless  => "if (Get-DhcpServerv4Failover ${title}) { exit 0 } else { exit 1 }",
+    command => "Add-DhcpServerv4Failover -Name \"${title}\" -ScopeId ${subnets} -PartnerServer ${partnerserver} ${common_options} ${mode_options} -Force",
+    unless  => "if (Get-DhcpServerv4Failover \"${title}\") { exit 0 } else { exit 1 }",
     require => undef,
   }
 
   exec { "set ${title} autostatetransition":
-    command => "Set-DhcpServerv4Failover ${title} -AutoStateTransition \$${autostatetransition}",
-    unless  => "if ((Get-DhcpServerv4Failover ${title}).AutoStateTransition -ne \$${autostatetransition}) { exit 1 }",
+    command => "Set-DhcpServerv4Failover \"${title}\" -AutoStateTransition ${autostatetransition}",
+    unless  => "if ((Get-DhcpServerv4Failover \"${title}\").AutoStateTransition -ne ${autostatetransition}) { exit 1 }",
   }
 
   exec { "set ${title} maxclientleadtime":
-    command => "Set-DhcpServerv4Failover ${title} -MaxClientLeadTime ${maxclientleadtime}",
-    unless  => "if ((Get-DhcpServerv4Failover ${title}).MaxClientLeadTime -ne \"${maxclientleadtime}\") { exit 1 }",
+    command => "Set-DhcpServerv4Failover \"${title}\" -MaxClientLeadTime ${maxclientleadtime}",
+    unless  => "if ((Get-DhcpServerv4Failover \"${title}\").MaxClientLeadTime -ne \"${maxclientleadtime}\") { exit 1 }",
   }
 
   exec { "set ${title} mode":
-    command => "Set-DhcpServerv4Failover ${title} -Mode ${mode}",
-    unless  => "if ((Get-DhcpServerv4Failover ${title}).Mode -ne ${mode}) { exit 1 }",
+    command => "Set-DhcpServerv4Failover \"${title}\" -Mode ${mode}",
+    unless  => "if ((Get-DhcpServerv4Failover \"${title}\").Mode -ne ${mode}) { exit 1 }",
   }
 
   exec { "set ${title} stateswitchinterval":
-    command => "Set-DhcpServerv4Failover ${title} -StateSwitchInterval ${stateswitchinterval}",
-    unless  => "if ((Get-DhcpServerv4Failover ${title}).StateSwitchInterval -ne ${stateswitchinterval}) { exit 1 }",
+    command => "Set-DhcpServerv4Failover \"${title}\" -StateSwitchInterval ${stateswitchinterval}",
+    unless  => "if ((Get-DhcpServerv4Failover \"${title}\").StateSwitchInterval -ne ${stateswitchinterval}) { exit 1 }",
   }
 
   # Use a basic powershell script on the file system to keep the failover scopes in sync
 
-  file { 'C:/Windows/Temp/Update-DhcpServerv4FailoverScope.ps1':
+  file { 'Update-DhcpServerv4FailoverScope.ps1':
     ensure => present,
+    path   => 'C:/Windows/Temp/Update-DhcpServerv4FailoverScope.ps1',
     source => 'puppet:///modules/windows_dhcp/Update-DhcpServerv4FailoverScope.ps1',
   }
 
   exec { "set ${title} subnets":
-    command => "C:/Windows/Temp/Update-DhcpServerv4FailoverScope.ps1' -Name ${title} -ScopeId $subnets",
-    unless  => "if ((Compare-Object (Get-DhcpServerv4Failover ${title}).ScopeId ${subnets}).count -gt 0) { write 1 }",
-    require => [Exec["add ${title}"], File['C:/Windows/Temp/Update-DhcpServerv4FailoverScope.ps1']],
+    command => "C:/Windows/Temp/Update-DhcpServerv4FailoverScope.ps1' -Name \"${title}\" -ScopeId $subnets",
+    unless  => "if ((Compare-Object (Get-DhcpServerv4Failover \"${title}\").ScopeId ${subnets}).count -gt 0) { write 1 }",
+    require => [Exec["add ${title}"], File['Update-DhcpServerv4FailoverScope.ps1']],
   }
 }

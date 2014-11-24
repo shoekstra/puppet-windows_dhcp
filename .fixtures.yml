@@ -1,0 +1,7 @@
+fixtures:
+  repositories:
+    powershell: "https://github.com/puppetlabs/puppetlabs-powershell.git"
+    stdlib: "https://github.com/puppetlabs/puppetlabs-stdlib.git"
+    windowsfeature: "https://github.com/opentable/puppet-windowsfeature.git"
+  symlinks:
+    windows_dhcp: "#{source_dir}"

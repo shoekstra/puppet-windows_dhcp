@@ -14,7 +14,7 @@
 # [*endrange*]
 #   Specifies the ending address of the IPv4 range to set for the scope. This is a required
 #   parameter.
-
+#
 # [*scopeid*]
 #   Specifies the scope identifier (network address) for the scope specified. This is a required
 #   parameter.
@@ -120,7 +120,7 @@ define windows_dhcp::scope (
   }
 
   exec { "set ${title} description":
-    command => "Set-DhcpServerv4Scope ${scopeid} -description ${description}",
+    command => "Set-DhcpServerv4Scope ${scopeid} -description \"${description}\"",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).description -ne \"${description}\") { exit 1 }",
   }
 
@@ -147,7 +147,7 @@ define windows_dhcp::scope (
   if $dnsdomain {
     exec { "set ${title} dns domain":
       command => "Set-DhcpServerv4OptionValue ${scopeid} -DnsDomain ${dnsdomain}",
-      unless  => "if ((Get-DhcpServerv4OptionValue -ScopeId ${scopeid} -OptionId 15).value-ne \"${dnsdomain}\") { exit 1 }",
+      unless  => "if ((Get-DhcpServerv4OptionValue -ScopeId ${scopeid} -OptionId 15).value -ne \"${dnsdomain}\") { exit 1 }",
     }
   }
 
@@ -168,7 +168,7 @@ define windows_dhcp::scope (
   if $router {
     exec { "set ${title} router":
       command => "Set-DhcpServerv4OptionValue ${scopeid} -Router ${router}",
-      unless  => "if ((Get-DhcpServerv4OptionValue -ScopeId ${scopeid} -OptionId 3).value-ne \"${router}\") { exit 1 }",
+      unless  => "if ((Get-DhcpServerv4OptionValue -ScopeId ${scopeid} -OptionId 3).value -ne \"${router}\") { exit 1 }",
     }
   }
 }

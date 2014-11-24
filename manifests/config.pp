@@ -4,9 +4,9 @@
 #
 class windows_dhcp::config {
 
-  exec { "add security groups ${::fqdn}":
+  exec { 'add DHCP security groups':
     command  => "Add-DhcpServerSecurityGroup",
-    unless   => "if (((Get-WMIObject Win32_Group -filter {domain=\"${::hostname}\"}).Name | ?{\$_ -match \"DHCP\"}).count -eq 0) { exit 1 }",
+    unless   => "if ($(net localgroup) -contains '*DHCP Administrators' -or '*DHCP Users') { exit 0 } else { exit 1 }",
     provider => 'powershell',
   } ->
 
@@ -16,15 +16,15 @@ class windows_dhcp::config {
     provider => 'powershell',
   } ->
 
-  exec { "authorize ${::fqdn}":
+  exec { "authorise server":
     command  => "${windows_dhcp::credentials}; saps powershell.exe -Credential \$cred -NoNewWindow -ArgumentList \"Add-DhcpServerInDC\"",
     unless   => "if ((Get-DhcpServerInDC).DnsName -contains \"${::fqdn}\") { exit 0 } else { exit 1 }",
     provider => 'powershell',
   } ->
 
-  exec { "set conflict detection attempts ${::fqdn}":
+  exec { "set conflict detection attempts":
     command  => "Set-DhcpServerSetting -ConflictDetectionAttempts ${windows_dhcp::conflictdetectionattempts}",
     unless   => "if ((Get-DhcpServerSetting).conflictdetectionattempts -ne ${windows_dhcp::conflictdetectionattempts}) { exit 1 }",
     provider => 'powershell',
-  } 
+  }
 }
