@@ -17,10 +17,16 @@
 #   before leasing an IP address. The acceptable values for this parameter are 0 through 5. The
 #   default value is '0'.
 #
+# [*populate_security_group*]
+#   Specifies if the module should populate the "DHCP Administrators" could with the configured
+#   $domain_user. This is for organisations that manage local group membership via group policy;
+#   setting this option to true will ensure Puppet and the GPO don't fight over group membership.
+#
 class windows_dhcp (
   $domain_user,
   $domain_pass,
   $conflictdetectionattempts = 0,
+  $populate_security_group = true,
 ) {
 
   if ! $::osfamily == 'Windows' {

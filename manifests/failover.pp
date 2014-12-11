@@ -85,16 +85,17 @@ define windows_dhcp::failover (
     require  => Exec["add ${title}"]
   }
 
-  if $mode == 'loadbalance' {
-    $mode_options = "-LoadBalancePercent ${loadbalancepercent}"
+  $mode_options = $mode ? {
+    'hotstandby' => "-ReservePercent ${reservepercent} -ServerRole ${serverrole}"
+    default      => "-LoadBalancePercent ${loadbalancepercent}"
+  }
 
+  if $mode == 'loadbalance' {
     exec { "set ${title} loadbalancepercent":
       command => "Set-DhcpServerv4Failover \"${title}\" -LoadBalancePercent ${loadbalancepercent}",
       unless  => "if ((Get-DhcpServerv4Failover \"${title}\").LoadBalancePercent -ne ${loadbalancepercent}) { exit 1 }",
     }
   } else {
-    $mode_options = "-ReservePercent ${reservepercent} -ServerRole ${serverrole}"
-
     exec { "set ${title} reservepercent":
       command => "Set-DhcpServerv4Failover \"${title}\" -ReservePercent ${reservepercent}",
       unless  => "if ((Get-DhcpServerv4Failover \"${title}\").ReservePercent -ne ${reservepercent}) { exit 1 }",
@@ -132,8 +133,8 @@ define windows_dhcp::failover (
     unless  => "if ((Get-DhcpServerv4Failover \"${title}\").StateSwitchInterval -ne ${stateswitchinterval}) { exit 1 }",
   }
 
-  # Use a basic powershell script on the file system to keep the failover scopes in sync
-
+  # Use a basic PowerShell script on the file system to keep the failover scopes in sync
+  #
   file { 'Update-DhcpServerv4FailoverScope.ps1':
     ensure => present,
     path   => 'C:/Windows/Temp/Update-DhcpServerv4FailoverScope.ps1',
