@@ -86,7 +86,7 @@ define windows_dhcp::failover (
   }
 
   $mode_options = $mode ? {
-    'hotstandby' => "-ReservePercent ${reservepercent} -ServerRole ${serverrole}"
+    'hotstandby' => "-ReservePercent ${reservepercent} -ServerRole ${serverrole}",
     default      => "-LoadBalancePercent ${loadbalancepercent}"
   }
 

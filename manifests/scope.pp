@@ -4,9 +4,6 @@
 #
 # === Parameters
 #
-# [*sample_parameter*]
-#   Explanation of what this parameter affects and what it defaults to.
-#
 # [*startrange*]
 #   Specifies the starting address of the IPv4 range to set for the scope. This is a required
 #   parameter.
@@ -15,9 +12,8 @@
 #   Specifies the ending address of the IPv4 range to set for the scope. This is a required
 #   parameter.
 #
-# [*scopeid*]
-#   Specifies the scope identifier (network address) for the scope specified. This is a required
-#   parameter.
+# [*scopename*]
+#   Specifies the name of the scope to create/manage. This is a required parameter.
 #
 # [*subnetmask*]
 #   Specifies the subnet mask for the scope/network address specified. This is a required
@@ -67,7 +63,7 @@
 define windows_dhcp::scope (
   $startrange,
   $endrange,
-  $scopeid,
+  $scopename,
   $subnetmask,
   $dnsdomain = $::domain,
   $dnsserver = undef,
@@ -81,71 +77,78 @@ define windows_dhcp::scope (
   $type = 'dhcp'
 ) {
 
+  $scopeid = $title
+
   require windows_dhcp
 
   validate_re($state, '(active|inactive)')
   validate_re($type, '(bootp|dhcp|both)')
 
-  $options = "-EndRange ${endrange} -StartRange ${startrange} -SubnetMask ${subnetmask} -Name ${title} -Description \"${description}\" -ActivatePolicies \$${activatepolicies} -Delay ${delay} -LeaseDuration ${leaseduration} -MaxBootpClients ${maxbootpclients} -State ${state} -Type ${type}"
+  $options = "-EndRange ${endrange} -StartRange ${startrange} -SubnetMask ${subnetmask} -Name ${scopename} -Description \"${description}\" -ActivatePolicies \$${activatepolicies} -Delay ${delay} -LeaseDuration ${leaseduration} -MaxBootpClients ${maxbootpclients} -State ${state} -Type ${type}"
 
   Exec {
     provider => 'powershell',
-    require  => Exec["add ${title}"]
+    require  => Exec["add ${scopeid}"]
   }
 
-  exec { "add ${title}":
+  exec { "add ${scopeid}":
     command => "Add-DhcpServerv4Scope ${options}",
     unless  => "if (Get-DhcpServerv4Scope ${scopeid}) { exit 0 } else { exit 1 }",
     require => undef,
   }
 
-  exec { "set ${title} end range":
+  exec { "set ${scopeid} end range":
     command => "Set-DhcpServerv4Scope ${scopeid} -EndRange ${endrange}",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).endrange.IPAddressToString -ne \"${endrange}\") { exit 1 }",
   }
 
-  exec { "set ${title} start range":
+  exec { "set ${scopeid} start range":
     command => "Set-DhcpServerv4Scope ${scopeid} -StartRange ${startrange}",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).startrange.IPAddressToString -ne \"${startrange}\") { exit 1 }",
   }
 
-  exec { "set ${title} activatepolicies":
+  exec { "set ${scopeid} name":
+    command => "Set-DhcpServerv4Scope ${scopeid} -Name \"${name}\"",
+    unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).Name -ne \"${name}\") { exit 1 }",
+  }
+
+  exec { "set ${scopeid} activatepolicies":
     command => "Set-DhcpServerv4Scope ${scopeid} -ActivatePolicies \$${activatepolicies}",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).ActivatePolicies -ne \$${activatepolicies}) { exit 1 }",
   }
 
-  exec { "set ${title} delay":
+  exec { "set ${scopeid} delay":
     command => "Set-DhcpServerv4Scope ${scopeid} -Delay ${delay}",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).delay -ne \"${delay}\") { exit 1 }",
   }
 
-  exec { "set ${title} description":
+  exec { "set ${scopeid} description":
     command => "Set-DhcpServerv4Scope ${scopeid} -description \"${description}\"",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).description -ne \"${description}\") { exit 1 }",
   }
 
-  exec { "set ${title} leaseduration":
+  exec { "set ${scopeid} leaseduration":
     command => "Set-DhcpServerv4Scope ${scopeid} -LeaseDuration ${leaseduration}",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).leaseduration -ne \"${leaseduration}\") { exit 1 }",
   }
 
-  exec { "set ${title} maxbootpclients":
+  exec { "set ${scopeid} maxbootpclients":
     command => "Set-DhcpServerv4Scope ${scopeid} -maxbootpclients ${maxbootpclients}",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).maxbootpclients -ne \"${maxbootpclients}\") { exit 1 }",
   }
 
-  exec { "set ${title} state":
+  exec { "set ${scopeid} state":
     command => "Set-DhcpServerv4Scope ${scopeid} -state ${state}",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).state -ne \"${state}\") { exit 1 }",
   }
 
-  exec { "set ${title} type":
+  exec { "set ${scopeid} type":
     command => "Set-DhcpServerv4Scope ${scopeid} -Type ${type}",
     unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).type -ne \"${type}\") { exit 1 }",
   }
 
   if $dnsdomain {
-    exec { "set ${title} dns domain":
+    exec { "set ${scopeid} dns domain":
       command => "Set-DhcpServerv4OptionValue ${scopeid} -DnsDomain ${dnsdomain}",
       unless  => "if ((Get-DhcpServerv4OptionValue -ScopeId ${scopeid} -OptionId 15).value -ne \"${dnsdomain}\") { exit 1 }",
     }
@@ -159,14 +162,14 @@ define windows_dhcp::scope (
       $dns = $dnsserver
     }
 
-    exec { "set ${title} dns server":
+    exec { "set ${scopeid} dns server":
       command => "Set-DhcpServerv4OptionValue ${scopeid} -DnsServer ${dns}",
       unless  => "if ((Compare-Object (Get-DhcpServerv4OptionValue -ScopeId ${scopeid} -OptionId 6).value ${dns}).count -gt 0) { exit 1 }",
     }
   }
 
   if $router {
-    exec { "set ${title} router":
+    exec { "set ${scopeid} router":
       command => "Set-DhcpServerv4OptionValue ${scopeid} -Router ${router}",
       unless  => "if ((Get-DhcpServerv4OptionValue -ScopeId ${scopeid} -OptionId 3).value -ne \"${router}\") { exit 1 }",
     }
