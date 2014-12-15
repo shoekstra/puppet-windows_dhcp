@@ -57,7 +57,7 @@ describe 'windows_dhcp', :type => :class do
 
       it { should contain_exec('set conflict detection attempts').with({
         :command  => "Set-DhcpServerSetting -ConflictDetectionAttempts 0",
-        :unless   => "if ((Get-DhcpServerSetting).conflictdetectionattempts -ne 0) { exit 1 }",
+        :unless   => "if ((Get-DhcpServerSetting).ConflictDetectionAttempts -ne 0) { exit 1 }",
         :provider => 'powershell',
       })}
 
@@ -67,12 +67,12 @@ describe 'windows_dhcp', :type => :class do
 
     describe "with optional parameters" do
       (0..5).to_a.each do |opt|
-        context "when conflictdetectionattempts param is set to #{opt}" do
-          let :params do default_params.merge({ :conflictdetectionattempts => opt }) end
+        context "when conflict_detection_attempts param is set to #{opt}" do
+          let :params do default_params.merge({ :conflict_detection_attempts => opt }) end
 
           it { should contain_exec('set conflict detection attempts').with({
             :command  => "Set-DhcpServerSetting -ConflictDetectionAttempts #{opt}",
-            :unless   => "if ((Get-DhcpServerSetting).conflictdetectionattempts -ne #{opt}) { exit 1 }",
+            :unless   => "if ((Get-DhcpServerSetting).ConflictDetectionAttempts -ne #{opt}) { exit 1 }",
             :provider => 'powershell',
           })}
         end

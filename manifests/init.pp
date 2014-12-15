@@ -12,7 +12,7 @@
 # [*domain_pass*]
 #   Password for domain user. This is required parameter.
 #
-# [*conflictdetectionattempts*]
+# [*conflict_detection_attempts*]
 #   Specifies the number of times that the DHCP server service should attempt conflict detection
 #   before leasing an IP address. The acceptable values for this parameter are 0 through 5. The
 #   default value is '0'.
@@ -25,7 +25,7 @@
 class windows_dhcp (
   $domain_user,
   $domain_pass,
-  $conflictdetectionattempts = 0,
+  $conflict_detection_attempts = 0,
   $populate_security_group = true,
 ) {
 
@@ -33,7 +33,7 @@ class windows_dhcp (
     fail("${::operatingsystem} not supported")
   }
 
-  validate_re($conflictdetectionattempts, '[0-5]', '$conflictdetectionattempts must be between 0 and 5')
+  validate_re($conflict_detection_attempts, '[0-5]', '$conflict_detection_attempts must be between 0 and 5')
 
   $credentials = "
 \$pass = convertto-securestring -String \"${domain_pass}\" -AsPlainText -Force;

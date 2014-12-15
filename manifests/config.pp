@@ -33,7 +33,7 @@ class windows_dhcp::config {
   }
 
   exec { 'set conflict detection attempts':
-    command => "Set-DhcpServerSetting -ConflictDetectionAttempts ${windows_dhcp::conflictdetectionattempts}",
-    unless  => "if ((Get-DhcpServerSetting).conflictdetectionattempts -ne ${windows_dhcp::conflictdetectionattempts}) { exit 1 }",
+    command => "Set-DhcpServerSetting -ConflictDetectionAttempts ${windows_dhcp::conflict_detection_attempts}",
+    unless  => "if ((Get-DhcpServerSetting).ConflictDetectionAttempts -ne ${windows_dhcp::conflict_detection_attempts}) { exit 1 }",
   }
 }

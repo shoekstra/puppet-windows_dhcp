@@ -7,15 +7,15 @@ describe 'windows_dhcp::failover', :type => :define do
   }}
   let(:default_params) {{
     # required parameters
-    :partnerserver       => 'REMOTESERVER.CONTOSO.LOCAL',
-    :scopeid             => '192.168.10.0',
+    :partner_server        => 'REMOTESERVER.CONTOSO.LOCAL',
+    :scope_id              => '192.168.10.0',
     # default parameters
-    :mode                => 'loadbalance',
-    :loadbalancepercent  => 50,
-    :maxclientleadtime   => '1:00:00',
-    :reservepercent      => 5,
-    :serverrole          => 'active',
-    :stateswitchinterval => '1:00:00',
+    :mode                  => 'loadbalance',
+    :loadbalance_percent   => 50,
+    :max_client_lead_time  => '1:00:00',
+    :reserve_percent       => 5,
+    :server_role           => 'active',
+    :state_switch_interval => '1:00:00',
   }}
   let(:facts) {{
     :fqdn            => 'DHCPSERVER.CONTOSO.LOCAL',
@@ -91,8 +91,8 @@ describe 'windows_dhcp::failover', :type => :define do
         ))}
       end
 
-      describe "and scopeid is changed to \'192.168.10.0\'" do
-        let(:params) { default_params.merge({ :mode => mode, :scopeid => '192.168.10.0' })}
+      describe "and scope_id is changed to \'192.168.10.0\'" do
+        let(:params) { default_params.merge({ :mode => mode, :scope_id => '192.168.10.0' })}
 
         it { should contain_exec('set DHCPSERVER <-> REMOTESERVER subnets').with(default_exec.merge(
           :command => "C:/Windows/Temp/Update-DhcpServerv4FailoverScope.ps1' -Name \"DHCPSERVER <-> REMOTESERVER\" -ScopeId 192.168.10.0",
@@ -101,8 +101,8 @@ describe 'windows_dhcp::failover', :type => :define do
         ))}
       end
 
-      describe "and scopeid is changed to \'[192.168.10.0, 192.168.20.0]\'" do
-        let(:params) { default_params.merge({ :mode => mode, :scopeid => ['192.168.10.0','192.168.20.0'] })}
+      describe "and scope_id is changed to \'[192.168.10.0, 192.168.20.0]\'" do
+        let(:params) { default_params.merge({ :mode => mode, :scope_id => ['192.168.10.0','192.168.20.0'] })}
 
         it { should contain_exec('set DHCPSERVER <-> REMOTESERVER subnets').with(default_exec.merge(
           :command => "C:/Windows/Temp/Update-DhcpServerv4FailoverScope.ps1' -Name \"DHCPSERVER <-> REMOTESERVER\" -ScopeId @('192.168.10.0','192.168.20.0')",
@@ -111,41 +111,41 @@ describe 'windows_dhcp::failover', :type => :define do
         ))}
       end
 
-      context "and loadbalancepercent is changed to \'50\'" do
-        let(:params) { default_params.merge({ :mode => mode, :loadbalancepercent => 50 }) }
+      context "and loadbalance_percent is changed to \'50\'" do
+        let(:params) { default_params.merge({ :mode => mode, :loadbalance_percent => 50 }) }
 
         if mode == 'loadbalance'
-          it { should contain_exec('set DHCPSERVER <-> REMOTESERVER loadbalancepercent').with(default_exec.merge(
+          it { should contain_exec('set DHCPSERVER <-> REMOTESERVER loadbalance_percent').with(default_exec.merge(
             :command  => 'Set-DhcpServerv4Failover "DHCPSERVER <-> REMOTESERVER" -LoadBalancePercent 50',
             :unless   => 'if ((Get-DhcpServerv4Failover "DHCPSERVER <-> REMOTESERVER").LoadBalancePercent -ne 50) { exit 1 }',
           ))}
         else
-          it { should_not contain_exec('set DHCPSERVER <-> REMOTESERVER loadbalancepercent').with(default_exec.merge(
+          it { should_not contain_exec('set DHCPSERVER <-> REMOTESERVER loadbalance_percent').with(default_exec.merge(
             :command  => 'Set-DhcpServerv4Failover "DHCPSERVER <-> REMOTESERVER" -LoadBalancePercent 50',
             :unless   => 'if ((Get-DhcpServerv4Failover "DHCPSERVER <-> REMOTESERVER").LoadBalancePercent -ne 50) { exit 1 }',
           ))}
         end
       end
 
-      context "and maxclientleadtime is changed to \'1:00:00\'" do
-        let(:params) { default_params.merge({ :mode => mode, :maxclientleadtime => '1:00:00' }) }
+      context "and max_client_lead_time is changed to \'1:00:00\'" do
+        let(:params) { default_params.merge({ :mode => mode, :max_client_lead_time => '1:00:00' }) }
 
-        it { should contain_exec('set DHCPSERVER <-> REMOTESERVER maxclientleadtime').with(default_exec.merge(
+        it { should contain_exec('set DHCPSERVER <-> REMOTESERVER max_client_lead_time').with(default_exec.merge(
           :command  => "Set-DhcpServerv4Failover \"DHCPSERVER <-> REMOTESERVER\" -MaxClientLeadTime 1:00:00",
           :unless   => "if ((Get-DhcpServerv4Failover \"DHCPSERVER <-> REMOTESERVER\").MaxClientLeadTime -ne \"1:00:00\") { exit 1 }",
         ))}
       end
 
-      context "and reservepercent is changed to \'5\'" do
-        let(:params) { default_params.merge({ :mode => mode, :reservepercent => 5 }) }
+      context "and reserve_percent is changed to \'5\'" do
+        let(:params) { default_params.merge({ :mode => mode, :reserve_percent => 5 }) }
 
         if mode == 'loadbalance'
-          it { should_not contain_exec('set DHCPSERVER <-> REMOTESERVER reservepercent').with(default_exec.merge(
+          it { should_not contain_exec('set DHCPSERVER <-> REMOTESERVER reserve_percent').with(default_exec.merge(
             :command  => 'Set-DhcpServerv4Failover "DHCPSERVER <-> REMOTESERVER" -ReservePercent 5',
             :unless   => 'if ((Get-DhcpServerv4Failover DHCPSERVER <-> REMOTESERVER).ReservePercent -ne 5) { exit 1 }',
           ))}
         else
-          it { should contain_exec('set DHCPSERVER <-> REMOTESERVER reservepercent').with(default_exec.merge(
+          it { should contain_exec('set DHCPSERVER <-> REMOTESERVER reserve_percent').with(default_exec.merge(
             :command  => 'Set-DhcpServerv4Failover "DHCPSERVER <-> REMOTESERVER" -ReservePercent 5',
             :unless   => 'if ((Get-DhcpServerv4Failover "DHCPSERVER <-> REMOTESERVER").ReservePercent -ne 5) { exit 1 }',
           ))}
@@ -153,16 +153,16 @@ describe 'windows_dhcp::failover', :type => :define do
       end
 
       ['active', 'standby'].each do |role|
-        context "and serverrole is changed to \'#{role}\'" do
-          let(:params) { default_params.merge({ :mode => mode, :serverrole => role }) }
+        context "and server_role is changed to \'#{role}\'" do
+          let(:params) { default_params.merge({ :mode => mode, :server_role => role }) }
 
           if mode == 'loadbalance'
-            it { should_not contain_exec('set DHCPSERVER <-> REMOTESERVER serverrole').with(default_exec.merge(
+            it { should_not contain_exec('set DHCPSERVER <-> REMOTESERVER server_role').with(default_exec.merge(
               :command  => "Set-DhcpServerv4Failover \"DHCPSERVER <-> REMOTESERVER\" -ServerRole #{role}",
               :unless   => "if ((Get-DhcpServerv4Failover \"DHCPSERVER <-> REMOTESERVER\").ServerRole -ne #{role}) { exit 1 }",
             ))}
           else
-            it { should contain_exec('set DHCPSERVER <-> REMOTESERVER serverrole').with(default_exec.merge(
+            it { should contain_exec('set DHCPSERVER <-> REMOTESERVER server_role').with(default_exec.merge(
               :command  => "Set-DhcpServerv4Failover \"DHCPSERVER <-> REMOTESERVER\" -ServerRole #{role}",
               :unless   => "if ((Get-DhcpServerv4Failover \"DHCPSERVER <-> REMOTESERVER\").ServerRole -ne #{role}) { exit 1 }",
             ))}
@@ -171,12 +171,12 @@ describe 'windows_dhcp::failover', :type => :define do
       end
 
       ['0', '1:00:00'].each do |interval|
-        context "and stateswitchinterval is changed to \"#{interval}\"" do
-          let(:params) { default_params.merge({ :mode => mode, :stateswitchinterval => interval }) }
+        context "and state_switch_interval is changed to \"#{interval}\"" do
+          let(:params) { default_params.merge({ :mode => mode, :state_switch_interval => interval }) }
 
           autostatetransition = interval == '0' ? '$false' : '$true'
 
-          it { should contain_exec('set DHCPSERVER <-> REMOTESERVER stateswitchinterval').with(default_exec.merge(
+          it { should contain_exec('set DHCPSERVER <-> REMOTESERVER state_switch_interval').with(default_exec.merge(
             :command  => "Set-DhcpServerv4Failover \"DHCPSERVER <-> REMOTESERVER\" -StateSwitchInterval #{interval}",
             :unless   => "if ((Get-DhcpServerv4Failover \"DHCPSERVER <-> REMOTESERVER\").StateSwitchInterval -ne #{interval}) { exit 1 }",
           ))}
