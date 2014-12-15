@@ -108,8 +108,8 @@ define windows_dhcp::scope (
   }
 
   exec { "set ${scopeid} name":
-    command => "Set-DhcpServerv4Scope ${scopeid} -Name \"${name}\"",
-    unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).Name -ne \"${name}\") { exit 1 }",
+    command => "Set-DhcpServerv4Scope ${scopeid} -Name \"${scopename}\"",
+    unless  => "if ((Get-DhcpServerv4Scope ${scopeid}).Name -ne \"${scopename}\") { exit 1 }",
   }
 
   exec { "set ${scopeid} activatepolicies":

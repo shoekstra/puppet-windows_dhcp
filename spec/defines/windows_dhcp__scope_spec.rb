@@ -71,7 +71,7 @@ describe 'windows_dhcp::scope', :type => :define do
   end
 
   context "when name is set to 'Local Area Network'" do
-    let(:params) { default_params.merge({ :name => 'Local Area Network' })}
+    let(:params) { default_params.merge({ :scopename => 'Local Area Network' })}
     it { should contain_exec('set 192.168.10.0 name').with({
       :command  => "Set-DhcpServerv4Scope 192.168.10.0 -Name \"Local Area Network\"",
       :unless   => "if ((Get-DhcpServerv4Scope 192.168.10.0).Name -ne \"Local Area Network\") { exit 1 }",
